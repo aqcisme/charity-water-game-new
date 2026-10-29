@@ -1,16 +1,24 @@
 
-/* Water Quest - charity: water inspired design */
+/* Water Quest - charity: water-inspired design */
 
 * {
   box-sizing: border-box;
 }
 
+:root {
+  --water-yellow: #ffc907;
+  --water-black: #222222;
+  --water-blue: #1596d2;
+  --water-light-blue: #e8f5ff;
+  --water-border: #c5e6fc;
+}
+
 body {
-  font-family: Arial, sans-serif;
+  font-family: "Lato", Arial, sans-serif;
   margin: 0;
   padding: 24px;
-  background-color: #f4f8fb;
-  color: #222222;
+  background-color: #f5f5f2;
+  color: var(--water-black);
 }
 
 .container {
@@ -19,55 +27,96 @@ body {
   margin: 24px auto;
   padding: 32px;
   background-color: #ffffff;
-  border-radius: 16px;
+  border-radius: 12px;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+}
+
+.brand-label {
+  margin: 0 0 10px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 900;
+  letter-spacing: 2px;
 }
 
 h1 {
   text-align: center;
-  font-size: 36px;
-  font-weight: bold;
+  font-size: 40px;
+  font-weight: 900;
   margin: 0 0 12px;
-  color: #222222;
+  color: var(--water-black);
 }
 
 .game-instructions {
   font-size: 17px;
-  line-height: 1.5;
-  margin-bottom: 24px;
+  line-height: 1.6;
+  margin: 0 auto 24px;
   text-align: center;
+  max-width: 520px;
+}
+
+.difficulty-control {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 24px;
+}
+
+.difficulty-control label {
+  font-weight: 700;
+}
+
+.difficulty-control select {
+  min-width: 140px;
+  padding: 10px 12px;
+  border: 2px solid #dddddd;
+  border-radius: 6px;
+  background-color: #ffffff;
+  color: var(--water-black);
+  font: inherit;
+}
+
+.difficulty-control select:disabled {
+  opacity: 0.7;
 }
 
 .stats {
-  display: flex;
-  justify-content: space-around;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 24px;
   background-color: #fff7d6;
-  padding: 16px 10px;
-  border-radius: 12px;
+  padding: 18px 10px;
+  border-radius: 10px;
 }
 
 .stats p {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
   margin: 0;
-  font-size: 16px;
-  font-weight: bold;
-  color: #222222;
+  font-size: 13px;
+  font-weight: 700;
   text-align: center;
 }
 
 #current-cans,
+#goal-display,
+#best-score,
 #timer {
-  color: #1675bd;
-  font-size: 21px;
+  color: #0879a8;
+  font-size: 23px;
+  font-weight: 900;
 }
 
 .achievement {
-  min-height: 28px;
+  min-height: 48px;
   margin: 0 0 16px;
   text-align: center;
-  font-weight: bold;
-  color: #1675bd;
+  font-weight: 700;
+  color: #0879a8;
   line-height: 1.5;
 }
 
@@ -81,22 +130,21 @@ h1 {
 }
 
 .grid-cell {
-  background-color: #e8f5ff;
-  border: 2px solid #c5e6fc;
-  border-radius: 14px;
+  background-color: var(--water-light-blue);
+  border: 2px solid var(--water-border);
+  border-radius: 12px;
   aspect-ratio: 1;
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
-  transition: background-color 0.2s, border-color 0.2s;
   position: relative;
   overflow: hidden;
+  transition: background-color 0.2s, border-color 0.2s;
 }
 
 .grid-cell:hover {
   background-color: #d9efff;
-  border-color: #2e9df7;
+  border-color: var(--water-blue);
 }
 
 .water-can-wrapper {
@@ -109,6 +157,12 @@ h1 {
   max-width: 100px;
   max-height: 100px;
   cursor: pointer;
+  outline-offset: 3px;
+}
+
+.water-can-wrapper:focus-visible {
+  outline: 3px solid var(--water-black);
+  border-radius: 8px;
 }
 
 .water-can {
@@ -118,8 +172,71 @@ h1 {
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
-  cursor: pointer;
   animation: popUp 0.35s ease-out;
+}
+
+button {
+  font-family: inherit;
+  background-color: var(--water-yellow);
+  color: var(--water-black);
+  border: none;
+  padding: 14px 28px;
+  font-size: 17px;
+  font-weight: 900;
+  border-radius: 6px;
+  cursor: pointer;
+  display: block;
+  margin: 24px auto 0;
+  transition: background-color 0.2s, transform 0.2s;
+}
+
+button:hover:not(:disabled) {
+  background-color: #f0bb00;
+  transform: translateY(-2px);
+}
+
+button:focus-visible,
+.difficulty-control select:focus-visible {
+  outline: 3px solid var(--water-blue);
+  outline-offset: 3px;
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.75;
+  transform: none;
+}
+
+.game-note {
+  text-align: center;
+  font-size: 13px;
+  margin: 20px 0 0;
+  color: #555555;
+}
+
+.site-footer {
+  max-width: 750px;
+  margin: 20px auto;
+  padding: 20px 12px;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--water-black);
+}
+
+.site-footer p {
+  margin: 0 0 8px;
+}
+
+.site-footer a {
+  color: #0879a8;
+  font-weight: 700;
+  text-decoration: underline;
+  margin: 0 4px;
+}
+
+.site-footer a:hover {
+  color: var(--water-black);
 }
 
 @keyframes popUp {
@@ -132,31 +249,6 @@ h1 {
   }
 }
 
-button {
-  background-color: #ffc907;
-  color: #222222;
-  border: none;
-  padding: 14px 28px;
-  font-size: 17px;
-  font-weight: bold;
-  border-radius: 8px;
-  cursor: pointer;
-  display: block;
-  margin: 24px auto 0;
-  transition: background-color 0.2s, transform 0.2s;
-}
-
-button:hover {
-  background-color: #f0bb00;
-  transform: translateY(-2px);
-}
-
-button:focus-visible,
-.grid-cell:focus-visible {
-  outline: 3px solid #1675bd;
-  outline-offset: 3px;
-}
-
 @media (max-width: 600px) {
   body {
     padding: 12px;
@@ -164,11 +256,11 @@ button:focus-visible,
 
   .container {
     margin: 8px auto;
-    padding: 20px 14px;
+    padding: 24px 14px;
   }
 
   h1 {
-    font-size: 30px;
+    font-size: 32px;
   }
 
   .game-instructions {
@@ -176,21 +268,31 @@ button:focus-visible,
   }
 
   .stats {
-    gap: 8px;
-    padding: 14px 6px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px 8px;
+    padding: 16px 8px;
   }
 
   .stats p {
-    font-size: 14px;
-  }
-
-  #current-cans,
-  #timer {
-    font-size: 19px;
+    font-size: 13px;
   }
 
   .game-grid {
     gap: 8px;
+  }
+
+  .site-footer {
+    padding: 16px 4px;
+  }
+}
+
+@media (max-width: 350px) {
+  .difficulty-control {
+    flex-direction: column;
+  }
+
+  .game-grid {
+    gap: 5px;
   }
 }
 
@@ -200,11 +302,5 @@ button:focus-visible,
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
-  }
-}
-@media (max-width: 400px) {
-  .stats {
-    flex-direction: column;
-    gap: 12px;
   }
 }

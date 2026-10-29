@@ -1,75 +1,101 @@
-
-const GOAL_CANS = 20;
-const GAME_TIME = 30;
+const DIFFICULTIES = {
+  easy: { goal: 10, time: 45 },
+  normal: { goal: 20, time: 30 },
+  hard: { goal: 20, time: 20 }
+};
 
 let currentCans = 0;
-let timeLeft = GAME_TIME;
+let goalCans = DIFFICULTIES.normal.goal;
+let timeLeft = DIFFICULTIES.normal.time;
 let gameActive = false;
-let spawnInterval;
-let timerInterval;
+let spawnInterval = null;
+let timerInterval = null;
 
-const grid = document.querySelector('.game-grid');
-const cansDisplay = document.getElementById('current-cans');
-const timerDisplay = document.getElementById('timer');
-const achievements = document.getElementById('achievements');
-const startButton = document.getElementById('start-game');
+const grid = document.querySelector(".game-grid");
+const cansDisplay = document.getElementById("current-cans");
+const goalDisplay = document.getElementById("goal-display");
+const timerDisplay = document.getElementById("timer");
+const bestScoreDisplay = document.getElementById("best-score");
+const achievements = document.getElementById("achievements");
+const startButton = document.getElementById("start-game");
+const difficultySelect = document.getElementById("difficulty");
 
-// Load the best score saved in the browser.
-let bestScore = Number(localStorage.getItem('waterQuestBest')) || 0;
-
-const bestScoreDisplay = document.getElementById('best-score');
-
-// Display the saved best score when the page loads.
+// Load the best score saved in this browser.
+let bestScore = Number(localStorage.getItem("waterQuestBest")) || 0;
 bestScoreDisplay.textContent = bestScore;
 
-// Create the 3x3 game grid.
+// Create the 3-by-3 collection grid.
 function createGrid() {
-  grid.innerHTML = '';
+  grid.innerHTML = "";
 
   for (let i = 0; i < 9; i++) {
-    const cell = document.createElement('div');
-    cell.className = 'grid-cell';
+    const cell = document.createElement("div");
+    cell.className = "grid-cell";
     grid.appendChild(cell);
   }
 }
 
-// Place a water can in a random cell.
+// Update the goal and timer shown before a round starts.
+function updateDifficultyDisplay() {
+  const settings = DIFFICULTIES[difficultySelect.value];
+
+  goalCans = settings.goal;
+  goalDisplay.textContent = goalCans;
+  timeLeft = settings.time;
+  timerDisplay.textContent = timeLeft;
+}
+
+// Place one water can in a random cell.
 function spawnWaterCan() {
   if (!gameActive) return;
 
-  const cells = document.querySelectorAll('.grid-cell');
+  const cells = grid.querySelectorAll(".grid-cell");
 
-  // Remove the previous can.
+  // Remove the previous can before spawning another one.
   cells.forEach(cell => {
-    cell.innerHTML = '';
+    cell.innerHTML = "";
   });
 
-  // Choose a random cell.
   const randomCell = cells[Math.floor(Math.random() * cells.length)];
 
-  randomCell.innerHTML = `
-    <div class="water-can-wrapper" role="button"
-         aria-label="Collect water can">
-      <div class="water-can"></div>
-    </div>
-  `;
+  const can = document.createElement("div");
+  can.className = "water-can-wrapper";
+  can.setAttribute("role", "button");
+  can.setAttribute("tabindex", "0");
+  can.setAttribute("aria-label", "Collect water can");
+
+  const canImage = document.createElement("div");
+  canImage.className = "water-can";
+  canImage.setAttribute("aria-hidden", "true");
+
+  can.appendChild(canImage);
+  randomCell.appendChild(can);
 }
 
-// Start or restart the game.
+// Start a new round.
 function startGame() {
   if (gameActive) return;
 
   clearInterval(spawnInterval);
   clearInterval(timerInterval);
 
+  const settings = DIFFICULTIES[difficultySelect.value];
+
+  goalCans = settings.goal;
+  timeLeft = settings.time;
   currentCans = 0;
-  timeLeft = GAME_TIME;
   gameActive = true;
 
   cansDisplay.textContent = currentCans;
+  goalDisplay.textContent = goalCans;
   timerDisplay.textContent = timeLeft;
-  achievements.textContent = 'Go! Collect 20 water cans!';
-  startButton.textContent = 'Restart Game';
+
+  achievements.textContent =
+    `Go! Collect ${goalCans} water cans before time runs out!`;
+
+  startButton.textContent = "Game in Progress";
+  startButton.disabled = true;
+  difficultySelect.disabled = true;
 
   createGrid();
   spawnWaterCan();
@@ -86,71 +112,102 @@ function startGame() {
   }, 1000);
 }
 
-// Check for clicks on water cans.
-grid.addEventListener('click', event => {
-  const can = event.target.closest('.water-can-wrapper');
+// Collect a water can and update the score.
+function collectWaterCan(can) {
+  if (!gameActive || !can || !grid.contains(can)) return;
 
-  if (!gameActive || !can) return;
+  // Remove the can immediately so it cannot be collected twice.
+  can.remove();
 
   currentCans++;
-cansDisplay.textContent = currentCans;
+  cansDisplay.textContent = currentCans;
 
-// Update the best score if the current score is higher.
-if (currentCans > bestScore) {
-  bestScore = currentCans;
-
-  // Update the display.
-  bestScoreDisplay.textContent = bestScore;
-
-  // Save the best score for future visits.
-  localStorage.setItem('waterQuestBest', bestScore);
-}
-
-  // Show feedback at milestones.
-  if (currentCans === 5) {
-    achievements.textContent = 'Great start! 5 cans collected!';
-  } else if (currentCans === 10) {
-    achievements.textContent = 'Amazing! You collected 10 cans!';
+  // Save a new personal best.
+  if (currentCans > bestScore) {
+    bestScore = currentCans;
+    bestScoreDisplay.textContent = bestScore;
+    localStorage.setItem("waterQuestBest", bestScore);
   }
 
-  if (currentCans >= GOAL_CANS) {
+  if (currentCans >= goalCans) {
     endGame(true);
-  } else {
-    // Remove the collected can.
-    can.remove();
+    return;
+  }
 
+  if (currentCans >= 10) {
     achievements.textContent =
-      currentCans >= 10
-        ? `Amazing! ${currentCans} cans collected!`
-        : `Nice work! ${currentCans} cans collected!`;
+      `Amazing! ${currentCans} cans collected. Keep going!`;
+  } else if (currentCans >= 5) {
+    achievements.textContent =
+      `Great start! ${currentCans} cans collected!`;
+  } else {
+    achievements.textContent =
+      `Nice work! ${currentCans} cans collected!`;
+  }
+}
+
+// Handle mouse and touch clicks using event delegation.
+grid.addEventListener("click", event => {
+  const can = event.target.closest(".water-can-wrapper");
+
+  if (can) {
+    collectWaterCan(can);
   }
 });
 
-// End the game and display the result.
+// Allow players to collect cans with Enter or Space.
+grid.addEventListener("keydown", event => {
+  if (event.key !== "Enter" && event.key !== " ") return;
+
+  const can = event.target.closest(".water-can-wrapper");
+
+  if (can) {
+    event.preventDefault();
+    collectWaterCan(can);
+  }
+});
+
+// End a round and clean up its remaining elements.
 function endGame(won) {
+  if (!gameActive) return;
+
   gameActive = false;
 
   clearInterval(spawnInterval);
   clearInterval(timerInterval);
 
-  // Remove any remaining cans.
-  document.querySelectorAll('.water-can-wrapper').forEach(can => {
+  spawnInterval = null;
+  timerInterval = null;
+
+  grid.querySelectorAll(".water-can-wrapper").forEach(can => {
     can.remove();
   });
 
   if (won) {
     achievements.textContent =
-      'You did it! All 20 water cans collected!';
+      `You did it! All ${goalCans} water cans collected!`;
   } else {
     achievements.textContent =
-      `Time is up! You collected ${currentCans} cans. Try again!`;
+      `Time is up! You collected ${currentCans} of ${goalCans} cans. Try again!`;
   }
 
-  startButton.textContent = 'Play Again';
+  startButton.textContent = "Play Again";
+  startButton.disabled = false;
+  difficultySelect.disabled = false;
 }
 
-// Connect the start button to the game.
-startButton.addEventListener('click', startGame);
+// Update the preview when the player changes difficulty.
+difficultySelect.addEventListener("change", () => {
+  if (gameActive) return;
 
-// Set up the grid when the page loads.
+  updateDifficultyDisplay();
+  achievements.textContent =
+    `Ready to play? Collect ${goalCans} cans in ${timeLeft} seconds!`;
+});
+
+// Connect the start button.
+startButton.addEventListener("click", startGame);
+
+// Set up the initial page.
 createGrid();
+updateDifficultyDisplay();
